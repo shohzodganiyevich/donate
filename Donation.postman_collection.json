@@ -1,0 +1,43 @@
+{
+	"info": {
+		"_postman_id": "4b637dc3-e6b4-45ec-8129-dc525025e430",
+		"name": "Donation",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "46841540",
+		"_collection_link": "https://shohzodmardonov.postman.co/workspace/Shohzod-Mardonov's-Workspace~4a52eaec-bfbd-4dae-8e0e-896cddfe891c/collection/46841540-4b637dc3-e6b4-45ec-8129-dc525025e430?action=share&source=collection_link&creator=46841540"
+	},
+	"item": [
+		{
+			"name": "Recipient",
+			"item": [
+				{
+					"name": "createRecipient",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"full_name\": \"Murad Building\",\r\n    \"email\": \"mb@mail.uz\",\r\n    \"password\": \"qwerty\",\r\n    \"address\": \"Tashkent city\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3000/recipient",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"recipient"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
