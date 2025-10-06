@@ -1,43 +1,53 @@
-import { Injectable } from "@nestjs/common";
-import { CreateCardDto } from "./dto/create-card.dto";
-import { UpdateCardDto } from "./dto/update-card.dto";
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from "@nestjs/common";
 import { InjectModel } from "@nestjs/sequelize";
 import { Card } from "./models/card.model";
+import { CreateCardDto } from "./dto/create-card.dto";
+import { UpdateCardDto } from "./dto/update-card.dto";
 
 @Injectable()
 export class CardService {
   constructor(@InjectModel(Card) private readonly cardModel: typeof Card) {}
 
-  create(createCardDto: CreateCardDto) {
+  async create(createCardDto: CreateCardDto) {
+    const candidate = await this.cardModel.findOne({
+      where: { card_number: createCardDto.card_number },
+    });
+
+    if (candidate) {
+      throw new ConflictException("Card with this number already exists");
+    }
+    
     return this.cardModel.create(createCardDto);
   }
 
-  findAll() {
+  async findAll() {
     return this.cardModel.findAll({ include: { all: true } });
   }
 
-  findOne(id: number) {
-    return this.cardModel.findByPk(id);
+  async findOne(id: number) {
+    const card = await this.cardModel.findByPk(id, { include: { all: true } });
+    
+    if (!card) {
+      throw new NotFoundException(`Card with ID ${id} not found`);
+    }
+
+    return card;
   }
 
   async update(id: number, updateCardDto: UpdateCardDto) {
-    const conditate = await this.cardModel.findByPk(id);
-    if (!conditate) {
-      return { message: "Bunday card mavjud emas" };
-    }
-
-    const card = await this.cardModel.update(updateCardDto, {
-      where: { id },
-      returning: true,
-    });
-    return card[1][0];
+    const card = await this.findOne(id);
+    
+    return card.update(updateCardDto);
   }
 
   async remove(id: number) {
-    const delCount = await this.cardModel.destroy({ where: { id } });
-    if (!delCount) {
-      return { message: "Bunday card mavjud emas" };
-    }
-    return { message: "Card o'chirildi", id };
+    const card = await this.findOne(id);
+
+    await card.destroy();
+    return { message: `Card with ID ${id} deleted successfully` };
   }
 }

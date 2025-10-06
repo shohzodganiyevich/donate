@@ -1,44 +1,76 @@
-import { Injectable } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from "@nestjs/common";
+import { InjectModel } from "@nestjs/sequelize";
+import * as bcrypt from "bcrypt";
+import { Recipient } from "./models/recipient.model";
 import { CreateRecipientDto } from "./dto/create-recipient.dto";
 import { UpdateRecipientDto } from "./dto/update-recipient.dto";
-import { InjectModel } from "@nestjs/sequelize";
-import { Recipient } from "./models/recipient.model";
+import { RecipientSocial } from "../recipient-social/models/recipient-social.model";
 
 @Injectable()
 export class RecipientService {
   constructor(
-    @InjectModel(Recipient) private readonly recipientModel: typeof Recipient
+    @InjectModel(Recipient)
+    private readonly recipientModel: typeof Recipient,
+    @InjectModel(RecipientSocial)
+    private readonly recipientSocialModel: typeof RecipientSocial
   ) {}
-  create(createRecipientDto: CreateRecipientDto) {
-    return this.recipientModel.create(createRecipientDto);
+
+  async create(createRecipientDto: CreateRecipientDto) {
+    const candidate = await this.recipientModel.findOne({
+      where: { email: createRecipientDto.email },
+    });
+    if (candidate) {
+      throw new ConflictException(
+        `Recipient with email ${createRecipientDto.email} already exists`
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(createRecipientDto.password, 7);
+
+    const recipient = await this.recipientModel.create({
+      ...createRecipientDto,
+      password: hashedPassword,
+    });
+
+    return recipient;
+  }
+  async findAll() {
+    return this.recipientModel.findAll({
+      include: { all: true },
+    });
   }
 
-  findAll() {
-    return this.recipientModel.findAll({ include: { all: true } });
-  }
-
-  findOne(id: number) {
-    return this.recipientModel.findByPk(id);
+  async findOne(id: number) {
+    const recipient = await this.recipientModel.findByPk(id, {
+      include: { all: true },
+    });
+    if (!recipient) {
+      throw new NotFoundException(`Recipient with ID ${id} not found`);
+    }
+    return recipient;
   }
 
   async update(id: number, updateRecipientDto: UpdateRecipientDto) {
-    const conditate = await this.recipientModel.findByPk(id);
-    if (!conditate) {
-      return { message: "Bunday recipient mavjud emas" };
+    const recipient = await this.findOne(id);
+
+    if (updateRecipientDto.password) {
+      updateRecipientDto.password = await bcrypt.hash(
+        updateRecipientDto.password,
+        7
+      );
     }
 
-    const recipient = await this.recipientModel.update(updateRecipientDto, {
-      where: { id },
-      returning: true,
-    });
-    return recipient[1][0];
+    await recipient.update(updateRecipientDto);
+    return recipient;
   }
 
   async remove(id: number) {
-    const delCount = await this.recipientModel.destroy({ where: { id } });
-    if (!delCount) {
-      return { message: "Bunday recipient mavjud emas" };
-    }
-    return { message: "Recipient o'chirildi", id };
+    const recipient = await this.findOne(id);
+    await recipient.destroy();
+    return { message: `Recipient with ID ${id} deleted successfully` };
   }
 }

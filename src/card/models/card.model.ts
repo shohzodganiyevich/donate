@@ -1,9 +1,17 @@
-import { Column, DataType, Model, Table } from "sequelize-typescript";
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  ForeignKey,
+  BelongsTo,
+} from "sequelize-typescript";
+import { Recipient } from "../../recipient/models/recipient.model";
 
 interface ICardCreationAttr {
   card_type: string;
-  card_number: number;
-  expiry_date: Date;
+  card_number: string;
+  expiry_date: string;
   recipientId: number;
 }
 
@@ -11,26 +19,24 @@ interface ICardCreationAttr {
 export class Card extends Model<Card, ICardCreationAttr> {
   @Column({
     type: DataType.INTEGER,
-    autoIncrement: true,
     primaryKey: true,
+    autoIncrement: true,
   })
   declare id: number;
 
-  @Column({
-    type: DataType.ENUM("UZCARD", "HUMO", "VISA"),
-    allowNull: false,
-  })
+  @Column({ type: DataType.STRING, allowNull: false })
   declare card_type: string;
 
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-  })
-  declare card_number: number;
+  @Column({ type: DataType.STRING, allowNull: false })
+  declare card_number: string;
 
-  @Column({
-    type: DataType.DATEONLY,
-    allowNull: false,
-  })
-  declare expiry_date: Date;
+  @Column({ type: DataType.STRING, allowNull: false })
+  declare expiry_date: string;
+
+  @ForeignKey(() => Recipient)
+  @Column({ type: DataType.INTEGER })
+  declare recipientId: number;
+
+  @BelongsTo(() => Recipient)
+  declare recipient: Recipient;
 }
