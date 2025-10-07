@@ -10,8 +10,6 @@ import { AdminModule } from "../admin/admin.module";
     ConfigModule.forRoot({ isGlobal: true }),
     JwtModule.register({
       global: true,
-      secret: process.env.SECRET_KEY,
-      signOptions: { expiresIn: process.env.SECRET_TIME },
     }),
     AdminModule,
   ],

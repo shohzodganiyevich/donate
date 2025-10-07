@@ -6,6 +6,7 @@ interface IAdminCreationAttr {
   password: string;
   is_creator: boolean;
   is_active: boolean;
+  activation_link?: string;
   token?: string;
 }
 
@@ -54,4 +55,10 @@ export class Admin extends Model<Admin, IAdminCreationAttr> {
     allowNull: true,
   })
   declare token: string;
+
+  @Column({
+    type: DataType.UUID,
+    defaultValue:DataType.UUIDV4,
+  })
+  declare activation_link: string;
 }

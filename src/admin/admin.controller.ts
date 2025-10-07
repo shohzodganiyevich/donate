@@ -21,7 +21,12 @@ import { CreatorGuard } from "../common/guards/creator.guard";
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
-  @UseGuards(JwtAuthGuard, CreatorGuard)
+  @Get("activate/:link")
+  activateUser(@Param("link") link: string) {
+    return this.adminService.activateUser(link);
+  }
+
+  // @UseGuards(JwtAuthGuard, CreatorGuard)
   @Post()
   @ApiOperation({ summary: "Create admin" })
   @ApiResponse({ status: 201, description: "Admin successfully created" })
